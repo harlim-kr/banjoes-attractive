@@ -616,14 +616,17 @@ function goBack(currentStep){
 
 const p=new URLSearchParams(window.location.search);
 const fenc=p.get('f');
+window._fd=null;
 if(fenc){
   try{
     const fd=JSON.parse(decodeURIComponent(escape(atob(fenc))));
-    document.getElementById('my-name').placeholder=fd.n+'이(가) 착즙 요청함';
-    document.getElementById('friend-link-notice').textContent=fd.n+'의 링크로 접속했어. 닉네임 입력하면 같이 착즙 시작!';
-    document.getElementById('friend-link-notice').style.display='block';
-    window._fenc=fenc;
     window._fd=fd;
+    document.addEventListener('DOMContentLoaded',()=>{
+      const inp=document.getElementById('my-name');
+      const notice=document.getElementById('friend-link-notice');
+      if(inp) inp.placeholder=fd.n+'이(가) 착즙 요청함';
+      if(notice){notice.textContent=fd.n+'의 링크로 접속했어. 닉네임 입력하면 같이 착즙 시작!';notice.style.display='block';}
+    });
   }catch(e){console.error('랜딩 파싱 실패:',e);}
 }
 </script>
