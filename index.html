@@ -236,9 +236,7 @@ input[type=text]:focus{border-color:var(--black)}
   <div class="card" style="margin-bottom:16px"><div id="inner-items-list"></div></div>
 
   <a href="https://linkdot.co" target="_blank" class="cta-link">앱에서 더 많은 아이템 보기 →</a>
-
-  <div class="share-box" id="result-share-url"></div>
-  <button class="btn-ghost" onclick="copyShare(this)">링크 복사하기</button>
+  <button class="btn-primary" id="btn-share" onclick="shareResult()" style="margin-top:4px">친구에게 공유하기</button>
 </div>
 
 </div><!-- /wrap -->
@@ -479,13 +477,22 @@ function showResult(){
     </div>`).join('');
 
   const enc=btoa(unescape(encodeURIComponent(JSON.stringify({n:ST.myName,o:outer,i:inner}))));
-  document.getElementById('result-share-url').textContent='linkdot.co/vibe?f='+enc.slice(0,20)+'...';
+  ST._shareEnc=enc;
   show('s5');
 }
 
-function copyShare(btn){
-  btn.textContent='복사 완료!';
-  setTimeout(()=>{btn.textContent='링크 복사하기'},2000);
+function shareResult(){
+  const base = window.location.href.split('?')[0];
+  const url = base + '?f=' + ST._shareEnc;
+  if(navigator.share){
+    navigator.share({title:'반전매력 착즙기', text:'나 착즙당했어 ㅋㅋ 너도 해봐', url:url});
+  } else {
+    navigator.clipboard.writeText(url).then(()=>{
+      const btn=document.getElementById('btn-share');
+      btn.textContent='링크 복사됐어!';
+      setTimeout(()=>{btn.textContent='친구에게 공유하기'},2000);
+    });
+  }
 }
 
 function goBack(currentStep){
