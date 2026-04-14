@@ -346,22 +346,29 @@ function startFlow(){
   const name=document.getElementById('my-name').value.trim();
   if(!name)return;
   ST.myName=name;
-  const params=new URLSearchParams(window.location.search);
-  const fenc=params.get('f');
   const db=getDB();
+
+  // URL 파라미터에서 직접 파싱
+  const fenc=new URLSearchParams(window.location.search).get('f');
+  let fd=null;
   if(fenc){
-    try{
-      const fd=window._fd||JSON.parse(decodeURIComponent(escape(atob(fenc))));
-      ST.friendName=fd.n;ST.friendData=fd;
-      if(db[name]){
-        ST.myOuter=db[name].outer;ST.myInner=db[name].inner;
-        ST.mode='friend-only';ST.qIdx=0;ST.friendAnswers=[];
-        loadQ('s3','dots3','s3-num','s3-title','s3-area','btn-s3',ST.friendName+'의 착즙 도와주기');
-      } else {
-        ST.mode='both';ST.qIdx=0;ST.myAnswers=[];ST.friendAnswers=[];
-        loadQ('s1','dots1','s1-num','s1-title','s1-area','btn-s1','');
-      }
-    }catch(e){console.error('친구링크 파싱 실패:',e,fenc);soloStart()}
+    try{fd=JSON.parse(decodeURIComponent(escape(atob(fenc))))}catch(e){}
+    if(!fd&&window._fd){fd=window._fd}
+  }
+
+  if(fd){
+    ST.friendName=fd.n;ST.friendData=fd;
+    if(db[name]){
+      // 이미 내 테스트 완료 → 친구꺼만
+      ST.myOuter=db[name].outer;ST.myInner=db[name].inner;
+      ST.myAnswers=db[name].answers||[];
+      ST.mode='friend-only';ST.qIdx=0;ST.friendAnswers=[];
+      loadQ('s3','dots3','s3-num','s3-title','s3-area','btn-s3',fd.n+'의 착즙 도와주기');
+    } else {
+      // 새 유저 → 바로 듀얼
+      ST.mode='both';ST.qIdx=0;ST.myAnswers=[];ST.friendAnswers=[];
+      loadDual();
+    }
   } else {
     if(db[name]){ST.myOuter=db[name].outer;ST.myInner=db[name].inner;showResult()}
     else{ST.mode='solo';ST.qIdx=0;ST.myAnswers=[];soloStart()}
@@ -395,7 +402,7 @@ function nextSolo(){
   else{
     const m=calcMood(ST.myAnswers);ST.myOuter=m.outer;ST.myInner=m.inner;
     const db=getDB();db[ST.myName]={outer:m.outer,inner:m.inner,answers:ST.myAnswers,friendPicks:[]};saveDB(db);
-    if(ST.mode==='both'){ST.qIdx=0;loadDual()}else{showResult()}
+    if(ST.mode==='both'){ST.qIdx=0;ST.friendAnswers=[];loadDual()}else{showResult()}
   }
 }
 
@@ -427,7 +434,7 @@ function nextDual(){
   const ms=document.getElementById('s2-me-area').querySelector('.sel');
   const fs=document.getElementById('s2-fr-area').querySelector('.sel');
   if(!ms||!fs)return;
-  if(ST.myAnswers.length>ST.qIdx){ST.myAnswers[ST.qIdx]=ms.textContent;}else{ST.myAnswers.push(ms.textContent);}
+  ST.myAnswers[ST.qIdx]=ms.textContent;
   ST.friendAnswers.push(fs.textContent);
   ST.qIdx++;
   if(ST.qIdx<6){loadDual()}
