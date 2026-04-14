@@ -248,7 +248,7 @@ input[type=text]:focus{border-color:var(--black)}
   <div class="section-label" id="inner-section-label"></div>
   <div class="card" style="margin-bottom:16px"><div id="inner-items-list"></div></div>
 
-  <a href="https://linkdot.co" target="_blank" class="cta-link">앱에서 더 많은 아이템 보기 →</a>
+  <a href="https://linkdot.co"  class="cta-link">앱에서 더 많은 아이템 보기 →</a>
   <button class="btn-primary" id="btn-share" onclick="shareResult()" style="margin-top:4px">친구에게 공유하기</button>
 </div>
 
@@ -475,7 +475,7 @@ function showPickSheet(friendName,fOuter,fInner,cb){
   ST._pickCb=cb;
   items.forEach(it=>{
     const d=document.createElement('div');d.className='pick-item';
-    d.innerHTML=`<div class="pick-radio"></div><span class="pick-name">${it.n}</span><a href="${it.u}" target="_blank" class="pick-see" onclick="event.stopPropagation()">보기</a>`;
+    d.innerHTML=`<div class="pick-radio"></div><span class="pick-name">${it.n}</span><a href="${it.u}"  class="pick-see" onclick="event.stopPropagation()">보기</a>`;
     d.onclick=()=>{area.querySelectorAll('.pick-item').forEach(p=>p.classList.remove('sel'));d.classList.add('sel');ST.pickedItem=it;document.getElementById('btn-s4').disabled=false};
     area.appendChild(d);
   });
@@ -539,7 +539,7 @@ function showFriendPopup(friendName, fOuter, fInner, friendAnswers, myAnswers){
     <div class="item-row">
       <div class="item-thumb"></div>
       <div class="item-info"><div class="item-name">${it.n}</div><div class="item-mood">${fOuter}/${fInner}</div></div>
-      <a href="${it.u}" target="_blank" class="item-see">보기</a>
+      <a href="${it.u}"  class="item-see">보기</a>
     </div>`).join('');
 
   document.getElementById('friend-popup').classList.add('active');
@@ -581,7 +581,7 @@ function showResult(){
       <span class="rank-num">${i+1}</span>
       <span class="rank-name">${p.from}</span>
       ${p.score!==null?`<span style="font-size:11px;color:var(--muted);margin-right:8px">${p.score}%</span>`:''}
-      <a href="${p.url}" target="_blank" style="font-size:20px;text-decoration:none;line-height:1" title="추천 아이템 보기">🎁</a>
+      <a href="${p.url}"  style="font-size:20px;text-decoration:none;line-height:1" title="추천 아이템 보기">🎁</a>
     </div>`).join('');
 
   document.getElementById('outer-section-label').textContent='겉무드 — '+outer;
@@ -591,13 +591,13 @@ function showResult(){
     <div class="item-row">
       <div class="item-thumb"></div>
       <div class="item-info"><div class="item-name">${it.n}</div><div class="item-mood">${outer}</div></div>
-      <a href="${it.u}" target="_blank" class="item-see">보기</a>
+      <a href="${it.u}"  class="item-see">보기</a>
     </div>`).join('');
   document.getElementById('inner-items-list').innerHTML=im.items.map(it=>`
     <div class="item-row">
       <div class="item-thumb"></div>
       <div class="item-info"><div class="item-name">${it.n}</div><div class="item-mood">${inner}</div></div>
-      <a href="${it.u}" target="_blank" class="item-see">보기</a>
+      <a href="${it.u}"  class="item-see">보기</a>
     </div>`).join('');
 
   const enc=btoa(unescape(encodeURIComponent(JSON.stringify({n:ST.myName,o:outer,i:inner}))));
@@ -609,13 +609,26 @@ function shareResult(){
   const base = window.location.href.split('?')[0];
   const url = base + '?f=' + ST._shareEnc;
   if(navigator.share){
-    navigator.share({title:'반전매력 착즙기', text:'나 착즙당했어 ㅋㅋ 너도 해봐', url:url});
-  } else {
-    navigator.clipboard.writeText(url).then(()=>{
-      const btn=document.getElementById('btn-share');
-      btn.textContent='링크 복사됐어!';
-      setTimeout(()=>{btn.textContent='친구에게 공유하기'},2000);
-    });
+    navigator.share({title:'반전매력 착즙기', text:'반전매력착즙기 왓이즈댓 😳\n', url:url});
+    return;
+  }
+  // fallback: 링크 박스 보여주기
+  const existing = document.getElementById('share-url-box');
+  if(existing){existing.remove();return;}
+  const box = document.createElement('div');
+  box.id='share-url-box';
+  box.style.cssText='background:#111;border-radius:10px;padding:12px 14px;font-size:12px;font-family:monospace;color:#aaa;word-break:break-all;margin-top:10px;position:relative;';
+  box.innerHTML=`<div style="font-size:11px;color:#666;margin-bottom:6px">아래 링크 복사해서 친구에게 보내줘</div><div id="share-url-text" style="color:#e8f03c;user-select:all">${url}</div><button onclick="copyShareUrl('${url}',this)" style="margin-top:8px;width:100%;padding:8px;background:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif">복사하기</button>`;
+  document.getElementById('btn-share').after(box);
+}
+
+function copyShareUrl(url, btn){
+  try{
+    navigator.clipboard.writeText(url).then(()=>{btn.textContent='복사됐어!';setTimeout(()=>{btn.textContent='복사하기'},2000)});
+  } catch(e){
+    const el=document.createElement('textarea');
+    el.value=url;document.body.appendChild(el);el.select();document.execCommand('copy');document.body.removeChild(el);
+    btn.textContent='복사됐어!';setTimeout(()=>{btn.textContent='복사하기'},2000);
   }
 }
 
