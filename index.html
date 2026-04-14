@@ -139,6 +139,7 @@ input[type=text]:focus{border-color:var(--black)}
     <img id="jjal-img" src="" alt="기존쎄 vs 유리멘탈"/>
     <div class="jjal-labels"><span>기존쎄</span><span>유리멘탈</span></div>
   </div>
+  <div id="friend-link-notice" style="display:none;background:#0F6E56;color:#fff;font-size:13px;padding:10px 14px;border-radius:var(--radius);margin-bottom:12px;font-weight:500"></div>
   <div class="input-wrap">
     <label>닉네임으로 시작 (중복 불가)</label>
     <input type="text" id="my-name" placeholder="내 닉네임" maxlength="12" oninput="checkNick()"/>
@@ -350,7 +351,7 @@ function startFlow(){
   const db=getDB();
   if(fenc){
     try{
-      const fd=JSON.parse(decodeURIComponent(escape(atob(fenc))));
+      const fd=window._fd||JSON.parse(decodeURIComponent(escape(atob(fenc))));
       ST.friendName=fd.n;ST.friendData=fd;
       if(db[name]){
         ST.myOuter=db[name].outer;ST.myInner=db[name].inner;
@@ -360,7 +361,7 @@ function startFlow(){
         ST.mode='both';ST.qIdx=0;ST.myAnswers=[];ST.friendAnswers=[];
         loadQ('s1','dots1','s1-num','s1-title','s1-area','btn-s1','');
       }
-    }catch{soloStart()}
+    }catch(e){console.error('친구링크 파싱 실패:',e,fenc);soloStart()}
   } else {
     if(db[name]){ST.myOuter=db[name].outer;ST.myInner=db[name].inner;showResult()}
     else{ST.mode='solo';ST.qIdx=0;ST.myAnswers=[];soloStart()}
@@ -615,7 +616,16 @@ function goBack(currentStep){
 
 const p=new URLSearchParams(window.location.search);
 const fenc=p.get('f');
-if(fenc){try{const fd=JSON.parse(decodeURIComponent(escape(atob(fenc))));document.getElementById('my-name').placeholder=fd.n+'이(가) 착즙 요청함'}catch{}}
+if(fenc){
+  try{
+    const fd=JSON.parse(decodeURIComponent(escape(atob(fenc))));
+    document.getElementById('my-name').placeholder=fd.n+'이(가) 착즙 요청함';
+    document.getElementById('friend-link-notice').textContent=fd.n+'의 링크로 접속했어. 닉네임 입력하면 같이 착즙 시작!';
+    document.getElementById('friend-link-notice').style.display='block';
+    window._fenc=fenc;
+    window._fd=fd;
+  }catch(e){console.error('랜딩 파싱 실패:',e);}
+}
 </script>
 </body>
 </html>
